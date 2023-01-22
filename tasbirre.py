@@ -2,7 +2,6 @@ import PySimpleGUI as sg
 import numpy as np
 import cv2
 import os
-from pathlib import Path
 
 windowSizeX = 1125
 windowSizeY = 750
@@ -14,6 +13,7 @@ blankImageBytes = blankImage.tobytes()
 
 def getImageData(path: str, blank: bool = False):
     global imageRatioX, imageRatioY
+    print("get")
     if blank:
         return blankImage
 
@@ -51,7 +51,7 @@ editPart = sg.Frame(
         [
             sg.T("明るさ", size = (8, 0), justification = "right", font = ("Meiryo UI", 15)),
             sg.Slider(
-                range = (-5, 5),
+                range = (0, 5),
                 default_value = 1,
                 resolution = 0.01,
                 orientation = "h",
@@ -97,7 +97,7 @@ widget = window["imageRawPreview"].Widget
 dragXY = []
 
 while True:
-    event, values = window.read(timeout = 0)
+    event, values = window.read(timeout = 100)
 
     # LUT
     brightness = values["sliderBrightness"]
@@ -111,12 +111,14 @@ while True:
 
     try:
         imagePath = values["inputText"]
+        # if rawImage is not getImageData(imagePath):
         rawImage = getImageData(imagePath) if os.path.exists(imagePath) else blankImage
         window["imageRawPreview"].update(data = rawImage.tobytes())
         editImage = cv2.resize(cv2.imread(imagePath), dsize = None, fx = imageRatioX, fy = imageRatioY) if os.path.exists(imagePath) else rawImage.copy()
         if event == "imageRawPreview__RELEASE":
             editImage = editImage[cropStart[0]:cropEnd[0], cropStart[1]:cropEnd[1]]
             dragXY = []
+            window["imageRawPreview"].draw_line((cropStart[0], cropEnd[0]), (cropStart[1], cropEnd[1]), color='#00FF00', width=1)
             print(cropStart, cropEnd)
         editImage = cv2.LUT(editImage, resultLUT)
         resultImage = cv2.imencode('.png', editImage)[1]
