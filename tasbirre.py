@@ -13,7 +13,6 @@ blankImageBytes = blankImage.tobytes()
 
 def getImageData(path: str, blank: bool = False):
     global imageRatioX, imageRatioY
-    print("get")
     if blank:
         return blankImage
 
